@@ -107,6 +107,18 @@ class TestModels(unittest.TestCase):
         updated_product = Product.query.get(30)
         self.assertEqual(updated_product.stock, 8)
 
+    def test_user_registration(self):
+        # Crea un nuevo usuario de prueba
+        user = User(username='testuser', email='test@example.com', password='password')
+
+        # Agrega el usuario a la base de datos
+        db.session.add(user)
+        db.session.commit()
+
+        # Verifica que el usuario se haya registrado correctamente en la base de datos
+        registered_user = User.query.filter_by(username='testuser').first()
+        self.assertIsNotNone(registered_user)
+
 
 if __name__ == '__main__':
     unittest.main()
