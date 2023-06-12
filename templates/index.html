@@ -54,7 +54,7 @@
       {%for product in products %}
           <div class="item">
             <span class="titulo-item">{{product.name}}</span>
-            <img src="/static/img/producto.webp" alt="" class="img-item">
+            <img src="/static/img/{{product.code}}.png" alt="" class="img-item">
             <span class="precio-item">S/.{{product.price}}</span>
             <span class="stock-item">STOCK: {{product.stock}}</span>
             <button class="boton-item">Agregar al Carrito</button>
