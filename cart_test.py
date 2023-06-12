@@ -30,12 +30,24 @@ class TestModels(unittest.TestCase):
 
     def test_update_stock(self):
         # Crea un ítem de prueba
-        item = Item(code=30, quantity=2)
+        item = Item(code=30, quantity=2, price=9.99)
         item.update_stock()
 
         # Verifica que el stock se haya actualizado correctamente
         updated_product = Product.query.get(30)
         self.assertEqual(updated_product.stock, 6)
+
+    def test_add_product_to_shopping_cart(self):
+        # Crea un ítem de prueba
+        item = Item(code=30, quantity=2, price=9.99)
+
+        # Agrega el ítem al carrito de compras
+        self.shopping_cart.items.append(item)
+        self.shopping_cart.total_price += (item.price * item.quantity)
+
+        # Verifica que el ítem se haya agregado correctamente al carrito de compras
+        self.assertEqual(len(self.shopping_cart.items), 1)
+        self.assertEqual(self.shopping_cart.total_price, item.price * item.quantity)
 
     def test_add_to_shopping_cart_product_not_found(self):
         # Hace una solicitud a la ruta '/add_to_shopping_cart' con un producto no existente
@@ -50,7 +62,7 @@ class TestModels(unittest.TestCase):
 
     def test_finish_purchase(self):
         # Crea un ítem de prueba y agrega al carrito de compras
-        item = Item(code=30, quantity=2)
+        item = Item(code=30, quantity=2, price=9.99)
         self.shopping_cart.items.append(item)
 
         # Finaliza la compra
@@ -61,13 +73,39 @@ class TestModels(unittest.TestCase):
         self.assertEqual(updated_product.stock, 8)
 
     def test_update_stock_negative(self):
-    # Crea un ítem de prueba con una cantidad mayor al stock disponible
-        item = Item(code=30, quantity=20)
-
+    # Crea un ítem de prueba con un stock insuficiente
+        item = Item(code=30, quantity=20, price=9.99)
+        # Intenta actualizar el stock
         with self.assertRaises(ValueError) as cm:
             item.update_stock()
+        # Verifica que se haya lanzado un ValueError
+        self.assertEqual(str(cm.exception), "Stock cannot be negative")
+        # Verifica que el stock no haya cambiado
+        updated_product = Product.query.get(30)
+        self.assertEqual(updated_product.stock, 6)
 
-        self.assertEqual(str(cm.exception), "Insufficient stock")
+    def test_remove_product_from_shopping_cart(self):
+        # Crea un ítem de prueba y agrega al carrito de compras
+        item = Item(code=30, quantity=20, price=9.99)
+        self.shopping_cart.items.append(item)
+        self.shopping_cart.total_price += (item.price * item.quantity)
+
+        # Elimina el ítem del carrito de compras
+        self.shopping_cart.items.remove(item)
+        self.shopping_cart.total_price -= (item.price * item.quantity)
+
+        # Verifica que el ítem se haya eliminado correctamente del carrito de compras
+        self.assertEqual(len(self.shopping_cart.items), 0)
+        self.assertEqual(self.shopping_cart.total_price, 0)
+
+
+    def test_finish_purchase_empty_cart(self):
+        # Finaliza la compra con un carrito de compras vacío
+        self.shopping_cart.finish_purchase()
+
+        # Verifica que no se realicen cambios en el stock de los productos
+        updated_product = Product.query.get(30)
+        self.assertEqual(updated_product.stock, 8)
 
 
 if __name__ == '__main__':

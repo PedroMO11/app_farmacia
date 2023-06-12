@@ -23,9 +23,10 @@ class Product(db.Model):
 
 
 class Item():
-    def __init__(self, code, quantity):
+    def __init__(self, code, quantity, price):
         self.code = code
         self.quantity = quantity
+        self.price = price
 
     def update_stock(self):
         print("Updating stock of product {}".format(self.code))
@@ -33,12 +34,9 @@ class Item():
             print("Before get product from DB")
             product = Product.query.get(self.code)
             print("After get product from DB")
-
-            if product.stock >= self.quantity:
-                product.stock -= self.quantity
-            else:
-                raise ValueError("Insufficient stock")
-
+            product.stock -= self.quantity
+            if product.stock < 0:
+                raise ValueError("Stock cannot be negative")
             print("New stock: {}".format(product.stock))
             db.session.commit()
         except:
@@ -46,9 +44,6 @@ class Item():
             raise
         finally:
             db.session.close()
-    
-    def __repr__(self):
-        return '<Item {} {}>'.format(self.code, self.quantity)
 
 
 class ShoppingCart():
